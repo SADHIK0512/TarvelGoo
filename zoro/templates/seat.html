@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Select Seat</title>
+<style>
+body { font-family:Arial; text-align:center; background:#f2f2f2; }
+select, button { padding:10px; margin:10px; }
+button { background:#2a5298; color:white; border:none; border-radius:5px; }
+</style>
+</head>
+<body>
+
+<h2>Select Your Seat</h2>
+
+<form action="/payment" method="POST">
+    <input type="hidden" name="transport_id" value="{{ id }}">
+    <input type="hidden" name="price" value="{{ price }}">
+
+    <select name="seat">
+        <option>A1</option>
+        <option>A2</option>
+        <option>B1</option>
+        <option>B2</option>
+    </select>
+
+    <button type="submit">Proceed to Payment</button>
+</form>
+
+</body>
+</html>

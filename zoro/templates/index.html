@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>TravelGo</title>
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+}
+
+/* Navbar */
+.navbar {
+    background:#0d47a1;
+    color:white;
+    padding:15px 50px;
+    display:flex;
+    justify-content:space-between;
+}
+.navbar a {
+    color:white;
+    text-decoration:none;
+    margin-left:20px;
+}
+
+/* Hero Section */
+.hero {
+    background:url('https://images.unsplash.com/photo-1526779259212-756eab2c9b3e') no-repeat center center/cover;
+    height:350px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    text-align:center;
+}
+.hero h1 {
+    font-size:40px;
+}
+
+/* Features Section */
+.features {
+    background:#e1bee7;
+    padding:50px;
+    display:flex;
+    justify-content:space-around;
+}
+.card {
+    background:white;
+    padding:25px;
+    width:250px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+.card h3 {
+    color:#0d47a1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>TravelGo</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </div>
+</div>
+
+<div class="hero">
+    <div>
+        <h1>Book Bus, Train, Flights & Hotels</h1>
+        <p>Your journey starts here. Find the best travel deals!</p>
+    </div>
+</div>
+
+<div class="features">
+    <div class="card">
+        <h3>🔥 Featured Deals</h3>
+        <p>Flat 30% off on bus tickets for new users.</p>
+        <b>Use Code: TRAVEL30</b>
+    </div>
+
+    <div class="card">
+        <h3>💺 Live Seat Availability</h3>
+        <p>Choose your seats in real-time just like movie ticket booking.</p>
+    </div>
+
+    <div class="card">
+        <h3>🏨 Hotels Near You</h3>
+        <p>Top-rated hotels near your destination. Filter by rating and price.</p>
+    </div>
+</div>
+
+</body>
+</html>

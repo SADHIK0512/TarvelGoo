@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Flight Booking</title>
+<style>
+body { font-family:Arial; background:#f4f4f4; text-align:center; }
+.card {
+    background:white;
+    width:300px;
+    margin:20px auto;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+button {
+    padding:8px 15px;
+    background:#0d47a1;
+    color:white;
+    border:none;
+    border-radius:5px;
+}
+</style>
+</head>
+<body>
+
+<h2>Available Flights</h2>
+
+{% for flight in flights %}
+<div class="card">
+    <h3>{{ flight.name }}</h3>
+    <p>{{ flight.source }} → {{ flight.dest }}</p>
+    <p>₹{{ flight.price }}</p>
+    <a href="/seat/{{ flight.id }}/{{ flight.price }}">
+        <button>Select Seat</button>
+    </a>
+</div>
+{% endfor %}
+
+</body>
+</html>

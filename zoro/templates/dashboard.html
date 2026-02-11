@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard - TravelGo</title>
+<style>
+body { font-family:Arial; background:#f4f4f4; }
+.nav { background:#1e3c72; padding:15px; color:white; text-align:center; }
+.card { background:white; padding:20px; margin:20px; border-radius:10px; display:inline-block; width:250px; box-shadow:0 4px 8px rgba(0,0,0,0.2); text-align:center; }
+a { text-decoration:none; }
+button { padding:8px 15px; background:#2a5298; color:white; border:none; border-radius:5px; }
+.table { width:80%; margin:auto; background:white; padding:20px; border-radius:10px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <h2>TravelGo Dashboard</h2>
+    <a href="/logout" style="color:white;">Logout</a>
+</div>
+
+<div style="text-align:center;">
+    <div class="card">
+        <h3>🚌 Bus</h3>
+        <a href="/bus"><button>View</button></a>
+    </div>
+
+    <div class="card">
+        <h3>🚆 Train</h3>
+        <a href="/train"><button>View</button></a>
+    </div>
+
+    <div class="card">
+        <h3>✈ Flight</h3>
+        <a href="/flight"><button>View</button></a>
+    </div>
+
+    <div class="card">
+        <h3>🏨 Hotels</h3>
+        <a href="/hotels"><button>View</button></a>
+    </div>
+</div>
+
+<div class="table">
+    <h3>Your Bookings</h3>
+    {% for booking in bookings %}
+        <p>
+            {{ booking.transport_id }} |
+            Seat: {{ booking.seat }} |
+            ₹{{ booking.price }}
+        </p>
+    {% endfor %}
+</div>
+
+</body>
+</html>

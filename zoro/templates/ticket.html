@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ticket</title>
+<style>
+body { font-family:Arial; text-align:center; background:#f4f4f4; }
+.ticket {
+    background:white;
+    padding:30px;
+    width:400px;
+    margin:50px auto;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+button {
+    padding:10px;
+    background:#2a5298;
+    color:white;
+    border:none;
+    border-radius:5px;
+}
+</style>
+</head>
+<body>
+
+<div class="ticket">
+    <h2>🎟 TravelGo Ticket</h2>
+    <p>Booking ID: {{ booking.booking_id }}</p>
+    <p>Transport: {{ booking.transport_id }}</p>
+    <p>Seat: {{ booking.seat }}</p>
+    <p>Price: ₹{{ booking.price }}</p>
+
+    <a href="/dashboard"><button>Back to Dashboard</button></a>
+</div>
+
+</body>
+</html>
