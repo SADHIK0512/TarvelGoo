@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flight Booking - TravelGo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header h2 {
+            color: #0d47a1;
+            font-size: 2.5em;
+        }
+
+        .flight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .flight-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .flight-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-top {
+            background: #0d47a1;
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .airline {
+            font-weight: bold;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .route-visual {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .plane-icon {
+            color: #0d47a1;
+            font-size: 1.5em;
+            animation: fly 3s infinite ease-in-out;
+        }
+
+        @keyframes fly {
+            0% { transform: translateX(-10px) rotate(0deg); }
+            50% { transform: translateX(10px) rotate(5deg); }
+            100% { transform: translateX(-10px) rotate(0deg); }
+        }
+
+        .price-area {
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-size: 1.6em;
+            color: #333;
+            font-weight: 800;
+        }
+
+        .btn-flight {
+            background: #ffab00;
+            color: #333;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(255, 171, 0, 0.4);
+            transition: 0.3s;
+        }
+
+        .btn-flight:hover {
+            background: #ffc107;
+            box-shadow: 0 6px 15px rgba(255, 171, 0, 0.6);
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+            color: #0047ab;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-plane-departure"></i> Book Your Flight</h2>
+            <p>Fly to your destination with comfort</p>
+        </div>
+
+        <div class="flight-grid">
+            {% for flight in flights %}
+            <div class="flight-card">
+                <div class="card-top">
+                    <div class="airline"><i class="fas fa-paper-plane"></i> {{ flight.name }}</div>
+                    <div><i class="fas fa-wifi"></i></div>
+                </div>
+                <div class="card-body">
+                    <div class="route-visual">
+                        <span>{{ flight.source }}</span>
+                        <i class="fas fa-plane plane-icon"></i>
+                        <span>{{ flight.dest }}</span>
+                    </div>
+                    <div class="price-area">
+                        <span class="price">₹{{ flight.price }}</span>
+                        <a href="/seat/{{ flight.id }}/{{ flight.price }}" class="btn-flight">Book</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+    </div>
+
+</body>
+</html>

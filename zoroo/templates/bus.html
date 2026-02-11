@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bus Booking - TravelGo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h2 {
+            color: #0047ab;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .bus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .bus-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-left: 6px solid #ffab00; /* Amber for road travel */
+        }
+
+        .bus-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .route {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .route i {
+            color: #ffab00;
+        }
+
+        .price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #eee;
+        }
+
+        .price {
+            font-size: 1.5em;
+            color: #0047ab;
+            font-weight: 800;
+        }
+
+        .btn-select {
+            background: #0047ab;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .btn-select:hover {
+            background: #003380;
+            transform: scale(1.05);
+        }
+
+        .icon-bg {
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            font-size: 150px;
+            color: rgba(0, 71, 171, 0.03);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 40px;
+            color: #0047ab;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-bus-alt"></i> Available Buses</h2>
+            <p>Comfortable journeys at affordable prices</p>
+        </div>
+
+        <div class="bus-grid">
+            {% for bus in buses %}
+            <div class="bus-card">
+                <i class="fas fa-bus icon-bg"></i>
+                <div class="route">
+                    <span>{{ bus.source }}</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <span>{{ bus.dest }}</span>
+                </div>
+                <div style="color: #777; font-size: 0.9em; margin-bottom: 10px;">
+                    <i class="far fa-clock"></i> Daily Service
+                </div>
+                <div class="price-section">
+                    <span class="price">₹{{ bus.price }}</span>
+                    <a href="/seat/{{ bus.id }}/{{ bus.price }}" class="btn-select">Select Seat</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+    </div>
+
+</body>
+</html>
