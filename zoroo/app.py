@@ -9,13 +9,14 @@ app = Flask(__name__)
 app.secret_key = "travelgo_secret"
 
 # ---------------- AWS CONNECTION ----------------
+# Ensure your region matches your AWS configuration
 dynamodb = boto3.resource('dynamodb', region_name='ap-south-1')
 sns = boto3.client('sns', region_name='ap-south-1')
 
 users_table = dynamodb.Table('travel-Users')
 bookings_table = dynamodb.Table('Bookings')
 
-# Replace with your actual SNS ARN
+# Replace with your actual SNS Topic ARN
 SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:873461661958:TravelGoNotifications"
 
 # ---------------- STATIC DATA ----------------
@@ -39,16 +40,54 @@ hotel_data = [
     {"id": "H2", "name": "Budget Inn", "city": "Hyderabad", "type": "Budget", "price": 1500}
 ]
 
-# Helper to find details by ID
-def get_transport_details(t_id):
-    all_transport = bus_data + train_data + flight_data
-    for t in all_transport:
+# ---------------- HELPER FUNCTIONS ----------------
+
+def get_transport_info(t_id):
+    """
+    Identifies the service type and details based on the ID.
+    This ensures the Dashboard can display specific icons and route info.
+    """
+    # Check Buses
+    for b in bus_data:
+        if b['id'] == t_id:
+            return {
+                'type': 'Bus',
+                'source': b['source'],
+                'destination': b['dest'],
+                'details': f"{b['name']} ({b['source']} - {b['dest']})"
+            }
+            
+    # Check Trains
+    for t in train_data:
         if t['id'] == t_id:
-            return f"{t['name']} | {t['source']} - {t['dest']}"
+            return {
+                'type': 'Train',
+                'source': t['source'],
+                'destination': t['dest'],
+                'details': f"{t['name']} ({t['source']} - {t['dest']})"
+            }
+            
+    # Check Flights
+    for f in flight_data:
+        if f['id'] == t_id:
+            return {
+                'type': 'Flight',
+                'source': f['source'],
+                'destination': f['dest'],
+                'details': f"{f['name']} ({f['source']} - {f['dest']})"
+            }
+            
+    # Check Hotels
     for h in hotel_data:
         if h['id'] == t_id:
-            return f"{h['name']} | {h['city']} ({h['type']})"
-    return "Transport Details"
+            return {
+                'type': 'Hotel',
+                'source': h['city'],
+                'destination': h['city'],
+                'details': f"{h['name']} in {h['city']} ({h['type']})"
+            }
+            
+    return {'type': 'General', 'source': 'Unknown', 'destination': 'Unknown', 'details': 'Transport Details'}
 
 # ---------------- ROUTES ----------------
 
@@ -90,10 +129,11 @@ def dashboard():
     if 'user' not in session:
         return redirect('/login')
     
-    # Scanning is not efficient for production but works for small demos. 
-    # Ideally use Query with a Global Secondary Index (GSI) on user_email.
+    # Fetch user bookings
+    # Using scan for simplicity; consider Query with GSI for production
     response = bookings_table.scan(FilterExpression=Attr('email').eq(session['user']))
     bookings = response.get('Items', [])
+    
     return render_template("dashboard.html", name=session.get('name', 'User'), bookings=bookings)
 
 # --- Service Pages ---
@@ -116,7 +156,7 @@ def seat(transport_id, price):
 
 # ---------------- BOOKING FLOW ----------------
 
-# Step 1: Review Booking (Triggered by Seat Selection)
+# Step 1: Review Booking (Triggered by Seat Selection Page)
 @app.route('/book', methods=['POST'])
 def book():
     if 'user' not in session: return redirect('/login')
@@ -125,18 +165,24 @@ def book():
     seats = request.form['seat']
     price = request.form['price']
     
-    # Create a temporary booking object in session
+    # Get full details (Type, Source, Dest) using the helper function
+    info = get_transport_info(t_id)
+    
+    # Create a temporary booking object in session to carry over to Payment page
     session['booking_flow'] = {
         'transport_id': t_id,
-        'details': get_transport_details(t_id),
+        'type': info['type'],
+        'source': info['source'],
+        'destination': info['destination'],
+        'details': info['details'],
         'seat': seats,
         'price': price,
-        'date': str(datetime.date.today()) # Defaulting to today as date isn't passed from seat.html
+        'date': str(datetime.date.today()) # Defaulting to today
     }
     
     return render_template("payment.html", booking=session['booking_flow'])
 
-# Step 2: Final Payment (Triggered by Payment Page)
+# Step 2: Final Payment (Triggered by Payment Confirmation Page)
 @app.route('/payment', methods=['POST'])
 def payment():
     if 'user' not in session or 'booking_flow' not in session:
@@ -145,13 +191,13 @@ def payment():
     # Retrieve data from session
     booking_data = session['booking_flow']
     
-    # Add payment details
+    # Add payment details and unique ID
     booking_id = str(uuid.uuid4())[:8]
     booking_data['booking_id'] = booking_id
     booking_data['email'] = session['user']
     booking_data['payment_method'] = request.form.get('method')
     booking_data['payment_reference'] = request.form.get('reference')
-    booking_data['price'] = Decimal(booking_data['price']) # Convert for DynamoDB
+    booking_data['price'] = Decimal(booking_data['price']) # Convert float/string to Decimal for DynamoDB
 
     # Save to DynamoDB
     bookings_table.put_item(Item=booking_data)
@@ -161,12 +207,12 @@ def payment():
         sns.publish(
             TopicArn=SNS_TOPIC_ARN,
             Subject="TravelGo Booking Confirmed",
-            Message=f"Booking ID: {booking_id}\nDetails: {booking_data['details']}\nSeats: {booking_data['seat']}\nPrice: {booking_data['price']}"
+            Message=f"Booking ID: {booking_id}\nType: {booking_data['type']}\nDetails: {booking_data['details']}\nSeats: {booking_data['seat']}\nTotal Paid: Rs. {booking_data['price']}"
         )
     except Exception as e:
         print(f"SNS Error: {e}")
 
-    # Clear session booking data
+    # Clear session booking data but keep a copy for the ticket display
     final_booking = booking_data.copy()
     session.pop('booking_flow', None)
 
@@ -179,7 +225,10 @@ def remove_booking():
     if 'user' not in session: return redirect('/login')
     
     b_id = request.form['booking_id']
+    
+    # Delete from DynamoDB
     bookings_table.delete_item(Key={'email': session['user'], 'booking_id': b_id})
+    
     return redirect('/dashboard')
 
 @app.route('/logout')
