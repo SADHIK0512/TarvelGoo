@@ -162,7 +162,8 @@ def book():
     if 'user' not in session: return redirect('/login')
 
     t_id = request.form['transport_id']
-    seats = request.form['seat']
+    # Handle cases where multiple seats might be selected or just one
+    seats = request.form.get('seat')
     price = request.form['price']
     
     # Get full details (Type, Source, Dest) using the helper function
@@ -197,7 +198,7 @@ def payment():
     booking_data['email'] = session['user']
     booking_data['payment_method'] = request.form.get('method')
     booking_data['payment_reference'] = request.form.get('reference')
-    booking_data['price'] = Decimal(booking_data['price']) # Convert float/string to Decimal for DynamoDB
+    booking_data['price'] = Decimal(str(booking_data['price'])) # Convert string to Decimal for DynamoDB
 
     # Save to DynamoDB
     bookings_table.put_item(Item=booking_data)
