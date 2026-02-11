@@ -124,7 +124,8 @@
             Non-AC Sleeper • <span id="displayPrice">₹{{ price }}</span>/person
         </div>
 
-        <form action="/payment" method="POST" id="bookingForm">
+        <!-- IMPORTANT: Action points to /book to initialize payment session before rendering payment page -->
+        <form action="/book" method="POST" id="bookingForm">
             <!-- Hidden Fields to send data to backend -->
             <div class="hidden-inputs">
                 <input type="hidden" name="transport_id" value="{{ id }}">
