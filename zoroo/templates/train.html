@@ -2,167 +2,203 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Booking - TravelGo</title>
+    <title>Train Booking - TravelGo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e0f7fa;
+        body, html {
             margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .bg-container {
+            /* High-quality background image with a dark overlay for text readability */
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
             padding: 40px 20px;
+            box-sizing: border-box;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
-        .header {
+        .header-title {
             text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .header h2 {
-            color: #0d47a1;
+            color: #ffcc00;
             font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 1px 2px 4px rgba(0,0,0,0.5);
         }
 
-        .flight-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-        }
-
-        .flight-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-            border-radius: 20px;
-            padding: 0;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s;
-        }
-
-        .flight-card:hover {
-            transform: translateY(-10px);
-        }
-
-        .card-top {
-            background: #0d47a1;
-            padding: 20px;
-            color: white;
+        .search-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-        .airline {
+        .search-input {
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            background: white;
+            color: #333;
+            min-width: 150px;
+            font-size: 0.95em;
+        }
+
+        .btn-search {
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-search:hover {
+            background: #e6b800;
+        }
+
+        .checkbox-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
         }
 
-        .card-body {
-            padding: 30px 20px;
-            text-align: center;
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .route-visual {
+        .list-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            color: #333;
+            transition: background 0.3s;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .item-details .title {
+            font-size: 1.25em;
             font-weight: bold;
-            font-size: 1.2em;
+            margin-bottom: 6px;
         }
 
-        .plane-icon {
-            color: #0d47a1;
-            font-size: 1.5em;
-            animation: fly 3s infinite ease-in-out;
+        .item-details .sub-info {
+            font-size: 0.9em;
+            color: #f0f0f0;
         }
 
-        @keyframes fly {
-            0% { transform: translateX(-10px) rotate(0deg); }
-            50% { transform: translateX(10px) rotate(5deg); }
-            100% { transform: translateX(-10px) rotate(0deg); }
-        }
-
-        .price-area {
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .price {
-            font-size: 1.6em;
-            color: #333;
-            font-weight: 800;
-        }
-
-        .btn-flight {
-            background: #ffab00;
-            color: #333;
-            border: none;
+        .btn-book {
+            background: #ffcc00;
+            color: #000;
             padding: 10px 25px;
-            border-radius: 50px;
-            font-weight: bold;
+            border-radius: 5px;
             text-decoration: none;
-            box-shadow: 0 4px 10px rgba(255, 171, 0, 0.4);
-            transition: 0.3s;
+            font-weight: bold;
+            transition: 0.2s;
         }
 
-        .btn-flight:hover {
-            background: #ffc107;
-            box-shadow: 0 6px 15px rgba(255, 171, 0, 0.6);
+        .btn-book:hover {
+            background: #e6b800;
         }
-        
+
         .back-link {
             display: block;
             text-align: center;
             margin-top: 40px;
-            color: #0047ab;
+            color: white;
             text-decoration: none;
             font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h2><i class="fas fa-plane-departure"></i> Book Your Flight</h2>
-            <p>Fly to your destination with comfort</p>
-        </div>
+    <div class="bg-container">
+        <div class="container">
+            <h2 class="header-title">👮‍♂️ Book Your Train</h2>
 
-        <div class="flight-grid">
-            {% for flight in flights %}
-            <div class="flight-card">
-                <div class="card-top">
-                    <div class="airline"><i class="fas fa-paper-plane"></i> {{ flight.name }}</div>
-                    <div><i class="fas fa-wifi"></i></div>
-                </div>
-                <div class="card-body">
-                    <div class="route-visual">
-                        <span>{{ flight.source }}</span>
-                        <i class="fas fa-plane plane-icon"></i>
-                        <span>{{ flight.dest }}</span>
-                    </div>
-                    <div class="price-area">
-                        <span class="price">₹{{ flight.price }}</span>
-                        <a href="/seat/{{ flight.id }}/{{ flight.price }}" class="btn-flight">Book</a>
-                    </div>
-                </div>
+            <div class="search-bar">
+                <select class="search-input">
+                    <option>Source City</option>
+                    <option>Hyderabad</option>
+                    <option>Chennai</option>
+                    <option>Delhi</option>
+                </select>
+                <select class="search-input">
+                    <option>Destination City</option>
+                    <option>Bangalore</option>
+                    <option>Delhi</option>
+                </select>
+                <input type="date" class="search-input">
+                <input type="number" class="search-input" placeholder="Passengers" min="1" value="1" style="width: 80px;">
+                <button class="btn-search">Search</button>
             </div>
-            {% endfor %}
+
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" checked> 1st Class</label>
+                <label class="checkbox-label"><input type="checkbox" checked> 2nd AC</label>
+                <label class="checkbox-label"><input type="checkbox" checked> 3rd AC</label>
+                <label class="checkbox-label"><input type="checkbox" checked> Sleeper</label>
+                <label class="checkbox-label"><input type="checkbox" checked> General</label>
+            </div>
+
+            <div class="list-container">
+                {% for train in trains %}
+                <div class="list-item">
+                    <div class="item-details">
+                        <div class="title">{{ train.name }}</div>
+                        <div class="sub-info">
+                            {{ train.source }} to {{ train.dest }} &bull; Express &bull; ₹{{ train.price }}/person
+                        </div>
+                    </div>
+                    <a href="/seat/{{ train.id }}/{{ train.price }}" class="btn-book">Book</a>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <a href="/dashboard" class="back-link">← Back to Dashboard</a>
         </div>
-        
-        <a href="/dashboard" class="back-link">← Back to Dashboard</a>
     </div>
 
 </body>
