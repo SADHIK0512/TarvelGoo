@@ -1,22 +1,25 @@
-from flask import Flask, render_template, request, redirect, session
-import boto3
+import os
 import uuid
 import datetime
 from decimal import Decimal
-from boto3.dynamodb.conditions import Attr
+from flask import Flask, render_template, request, redirect, session, jsonify
+import boto3
+from boto3.dynamodb.conditions import Key
 
 app = Flask(__name__)
-app.secret_key = "travelgo_secret"
+
+# SECURITY: Use environment variables for secrets
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "generate-a-long-random-string-for-prod")
 
 # ---------------- AWS CONNECTION ----------------
-# Ensure your region matches your AWS configuration
-dynamodb = boto3.resource('dynamodb', region_name='ap-south-1')
-sns = boto3.client('sns', region_name='ap-south-1')
+# It is better to rely on EC2 IAM Roles than hardcoded regions if possible
+REGION = os.environ.get("AWS_REGION", "ap-south-1")
+dynamodb = boto3.resource('dynamodb', region_name=REGION)
+sns = boto3.client('sns', region_name=REGION)
 
 users_table = dynamodb.Table('travel-Users')
 bookings_table = dynamodb.Table('Bookings')
 
-# Replace with your actual SNS Topic ARN
 SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:336449003024:TravelGoNotifications"
 
 # ---------------- STATIC DATA ----------------
@@ -24,17 +27,14 @@ bus_data = [
     {"id": "B1", "name": "Super Luxury Bus", "source": "Hyderabad", "dest": "Bangalore", "price": 800},
     {"id": "B2", "name": "Express Bus", "source": "Chennai", "dest": "Hyderabad", "price": 700}
 ]
-
 train_data = [
     {"id": "T1", "name": "Rajdhani Express", "source": "Hyderabad", "dest": "Delhi", "price": 1500},
     {"id": "T2", "name": "Shatabdi Express", "source": "Chennai", "dest": "Bangalore", "price": 900}
 ]
-
 flight_data = [
     {"id": "F1", "name": "Indigo 6E203", "source": "Hyderabad", "dest": "Dubai", "price": 8500},
     {"id": "F2", "name": "Air India AI102", "source": "Delhi", "dest": "Singapore", "price": 9500}
 ]
-
 hotel_data = [
     {"id": "H1", "name": "Grand Palace", "city": "Chennai", "type": "Luxury", "price": 4000},
     {"id": "H2", "name": "Budget Inn", "city": "Hyderabad", "type": "Budget", "price": 1500}
@@ -43,41 +43,20 @@ hotel_data = [
 # ---------------- HELPER FUNCTIONS ----------------
 
 def get_transport_info(t_id):
-    """
-    Identifies the service type and details based on the ID.
-    This ensures the Dashboard can display specific icons and route info.
-    """
-    # Check Buses
-    for b in bus_data:
-        if b['id'] == t_id:
-            return {
-                'type': 'Bus',
-                'source': b['source'],
-                'destination': b['dest'],
-                'details': f"{b['name']} ({b['source']} - {b['dest']})"
-            }
-            
-    # Check Trains
-    for t in train_data:
-        if t['id'] == t_id:
-            return {
-                'type': 'Train',
-                'source': t['source'],
-                'destination': t['dest'],
-                'details': f"{t['name']} ({t['source']} - {t['dest']})"
-            }
-            
-    # Check Flights
-    for f in flight_data:
-        if f['id'] == t_id:
-            return {
-                'type': 'Flight',
-                'source': f['source'],
-                'destination': f['dest'],
-                'details': f"{f['name']} ({f['source']} - {f['dest']})"
-            }
-            
-    # Check Hotels
+    """Identifies the service type and details based on the ID."""
+    all_services = [bus_data, train_data, flight_data]
+    types = ['Bus', 'Train', 'Flight']
+    
+    for idx, service_list in enumerate(all_services):
+        for item in service_list:
+            if item['id'] == t_id:
+                return {
+                    'type': types[idx],
+                    'source': item['source'],
+                    'destination': item['dest'],
+                    'details': f"{item['name']} ({item['source']} - {item['dest']})"
+                }
+    
     for h in hotel_data:
         if h['id'] == t_id:
             return {
@@ -129,14 +108,21 @@ def dashboard():
     if 'user' not in session:
         return redirect('/login')
     
-    # Fetch user bookings
-    # Using scan for simplicity; consider Query with GSI for production
-    response = bookings_table.scan(FilterExpression=Attr('email').eq(session['user']))
-    bookings = response.get('Items', [])
+    # IMPROVED: Using Query with GSI instead of Scan
+    # Requires a GSI named 'email-index' on the Bookings table
+    try:
+        response = bookings_table.query(
+            IndexName='email-index',
+            KeyConditionExpression=Key('email').eq(session['user'])
+        )
+        bookings = response.get('Items', [])
+    except Exception as e:
+        print(f"Query Error: {e}. Falling back to scan (Not recommended for prod)")
+        response = bookings_table.scan(FilterExpression=Key('email').eq(session['user']))
+        bookings = response.get('Items', [])
     
     return render_template("dashboard.html", name=session.get('name', 'User'), bookings=bookings)
 
-# --- Service Pages ---
 @app.route('/bus')
 def bus(): return render_template("bus.html", buses=bus_data)
 
@@ -154,22 +140,14 @@ def seat(transport_id, price):
     if 'user' not in session: return redirect('/login')
     return render_template("seat.html", id=transport_id, price=price)
 
-# ---------------- BOOKING FLOW ----------------
-
-# Step 1: Review Booking (Triggered by Seat Selection Page)
 @app.route('/book', methods=['POST'])
 def book():
     if 'user' not in session: return redirect('/login')
-
     t_id = request.form['transport_id']
-    # Handle cases where multiple seats might be selected or just one
     seats = request.form.get('seat')
     price = request.form['price']
-    
-    # Get full details (Type, Source, Dest) using the helper function
     info = get_transport_info(t_id)
     
-    # Create a temporary booking object in session to carry over to Payment page
     session['booking_flow'] = {
         'transport_id': t_id,
         'type': info['type'],
@@ -178,32 +156,25 @@ def book():
         'details': info['details'],
         'seat': seats,
         'price': price,
-        'date': str(datetime.date.today()) # Defaulting to today
+        'date': str(datetime.date.today())
     }
-    
     return render_template("payment.html", booking=session['booking_flow'])
 
-# Step 2: Final Payment (Triggered by Payment Confirmation Page)
 @app.route('/payment', methods=['POST'])
 def payment():
     if 'user' not in session or 'booking_flow' not in session:
         return redirect('/dashboard')
 
-    # Retrieve data from session
     booking_data = session['booking_flow']
-    
-    # Add payment details and unique ID
     booking_id = str(uuid.uuid4())[:8]
     booking_data['booking_id'] = booking_id
     booking_data['email'] = session['user']
     booking_data['payment_method'] = request.form.get('method')
     booking_data['payment_reference'] = request.form.get('reference')
-    booking_data['price'] = Decimal(str(booking_data['price'])) # Convert string to Decimal for DynamoDB
+    booking_data['price'] = Decimal(str(booking_data['price']))
 
-    # Save to DynamoDB
     bookings_table.put_item(Item=booking_data)
 
-    # Send SNS Notification
     try:
         sns.publish(
             TopicArn=SNS_TOPIC_ARN,
@@ -213,24 +184,9 @@ def payment():
     except Exception as e:
         print(f"SNS Error: {e}")
 
-    # Clear session booking data but keep a copy for the ticket display
     final_booking = booking_data.copy()
     session.pop('booking_flow', None)
-
     return render_template("ticket.html", booking=final_booking)
-
-# ---------------- CANCEL / LOGOUT ----------------
-
-@app.route('/remove_booking', methods=['POST'])
-def remove_booking():
-    if 'user' not in session: return redirect('/login')
-    
-    b_id = request.form['booking_id']
-    
-    # Delete from DynamoDB
-    bookings_table.delete_item(Key={'email': session['user'], 'booking_id': b_id})
-    
-    return redirect('/dashboard')
 
 @app.route('/logout')
 def logout():
@@ -238,6 +194,5 @@ def logout():
     return redirect('/')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
-
+    # Running on 0.0.0.0 for EC2 access, but debug is OFF for safety
+    app.run(host='0.0.0.0', port=5000, debug=False)
