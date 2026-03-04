@@ -17,7 +17,7 @@ users_table = dynamodb.Table('travel-Users')
 bookings_table = dynamodb.Table('Bookings')
 
 # Replace with your actual SNS Topic ARN
-SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:873461661958:TravelGoNotifications"
+SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:336449003024:TravelGoNotifications"
 
 # ---------------- STATIC DATA ----------------
 bus_data = [
@@ -239,3 +239,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
+
