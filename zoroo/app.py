@@ -20,7 +20,7 @@ sns = boto3.client('sns', region_name=REGION)
 users_table = dynamodb.Table('travel-Users')
 bookings_table = dynamodb.Table('Bookings')
 
-SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:336449003024:TravelGoNotifications"
+SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:211125411588:TravelGoNotifications"
 
 # ---------------- STATIC DATA ----------------
 bus_data = [
